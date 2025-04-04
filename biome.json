@@ -9,11 +9,13 @@
     "useIgnoreFile": true
   },
   "formatter": {
-    "indentStyle": "space"
+    "indentStyle": "space",
+    "indentWidth": 2
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "single"
+      "quoteStyle": "double",
+      "lineWidth": 120
     }
   },
   "css": {
@@ -24,7 +26,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "warn"
+      }
     }
   }
 }
