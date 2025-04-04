@@ -19,13 +19,16 @@
   layer0.grid[2][1] = { char: 'М', dir: 3 };
   towerLayers.push(layer0);
 
-  const layer1 = createMockLayer(4, 1);
-  layer1.grid[0][1] = { char: 'О', dir: 2 };
-  layer1.grid[0][2] = { char: 'С', dir: 2 };
-  layer1.grid[0][3] = { char: 'А', dir: 2 };
+  const layer1 = createMockLayer(7, 1);
+  layer1.grid[0][1] = { char: 'С', dir: 2 };
+  layer1.grid[0][2] = { char: 'О', dir: 2 };
+  layer1.grid[0][3] = { char: 'С', dir: 2 };
+  layer1.grid[0][4] = { char: 'А', dir: 2 };
+  layer1.grid[0][5] = { char: 'Л', dir: 2 };
+  layer1.grid[0][6] = { char: '?', dir: 2 };
   towerLayers.push(layer1);
 
-  const layer2 = createMockLayer(2, 1);
+  const layer2 = createMockLayer(7, 1);
   layer2.grid[0][1] = { char: 'А', dir: 1 };
   towerLayers.push(layer2);
 
