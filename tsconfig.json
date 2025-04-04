@@ -17,6 +17,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "allowUnreachableCode": false,
+    "lib": ["dom"],
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   }
 }
