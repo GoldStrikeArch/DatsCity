@@ -1,0 +1,1 @@
+<p style="color: green; font-weight: bold;">Minimal Test Component Works!</p>
