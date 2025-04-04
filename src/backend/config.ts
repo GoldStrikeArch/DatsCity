@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 export const CONFIG = {
   SHOW_VISUALIZATION: true, // ?
   PLAY_SOUND: true,
@@ -5,7 +7,7 @@ export const CONFIG = {
   SEND_REQUESTS: false, // переключить для отправки запросов
   DEBUG: false,
   LOGS_LIMIT: 100,
-  TOKEN: "НАШ ТОКЕН",
+  TOKEN: process.env.AUTH_TOKEN,
   BASE_URL: "https://games-test.datsteam.dev",
   GAME_ENDPOINT: "/play/magcarp/player/move", // поменять
   STATUS_ENDPOINT: "/rounds/magcarp", // поменять
