@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
   export let layers = [];
 
@@ -14,10 +15,15 @@
   let animationFrameId = null;
   let resizeObserver = null;
   let gridHelper = null;
+  let groundPlane = null;
+  let pointLight = null;
 
   let cubeGeometry = null;
   let materialOverlap = null;
   let materialDefault = null;
+  let materialX = null;
+  let materialY = null;
+  let materialZ = null;
   const characterTextures = new Map();
 
   function createCharacterTexture(char, size = 64) {
@@ -43,7 +49,7 @@
   }
 
   function updateTowerVisualization(currentLayers) {
-    if (!scene || !towerGroup || !cubeGeometry || !materialDefault) {
+    if (!scene || !towerGroup || !cubeGeometry || !materialDefault || !materialX || !materialY || !materialZ) {
         return;
     }
 
@@ -53,7 +59,11 @@
         if (mesh.material.map) {
              mesh.material.map.dispose();
         }
-         if (mesh.material !== materialDefault && mesh.material !== materialOverlap) {
+         if (mesh.material !== materialDefault &&
+             mesh.material !== materialOverlap &&
+             mesh.material !== materialX &&
+             mesh.material !== materialY &&
+             mesh.material !== materialZ) {
               mesh.material.dispose();
          }
     }
@@ -62,6 +72,12 @@
         if (gridHelper) {
             scene.remove(gridHelper);
             gridHelper = null;
+        }
+        if (groundPlane) {
+            scene.remove(groundPlane);
+            groundPlane.geometry.dispose();
+            groundPlane.material.dispose();
+            groundPlane = null;
         }
         return;
     }
@@ -78,11 +94,13 @@
 
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                const char = grid[y]?.[x];
+                const cellData = grid[y]?.[x];
 
-                if (char && char.trim() !== '') {
+                if (cellData && cellData.char && cellData.char.trim() !== '') {
                     const gameX = x;
                     const gameY = y;
+                    const char = cellData.char;
+                    const dir = cellData.dir;
 
                     minX = Math.min(minX, gameX);
                     maxX = Math.max(maxX, gameX);
@@ -95,7 +113,11 @@
                         if(charTexture) characterTextures.set(char, charTexture);
                     }
 
-                    const baseMaterial = materialDefault;
+                    let baseMaterial = materialDefault;
+                    if (dir === 1) baseMaterial = materialZ;
+                    else if (dir === 2) baseMaterial = materialX;
+                    else if (dir === 3) baseMaterial = materialY;
+
                     const cubeMaterial = baseMaterial.clone();
                     if (charTexture) {
                         cubeMaterial.map = charTexture;
@@ -106,6 +128,8 @@
 
                     const threeY = 0.45 - 0.9 * gameZ;
                     cube.position.set(gameX + 0.5, threeY, gameY + 0.5);
+
+                    cube.castShadow = true;
 
                     towerGroup.add(cube);
                 }
@@ -119,14 +143,27 @@
     }
     const sizeX = isFinite(minX) ? maxX - minX + 1 : 1;
     const sizeY = isFinite(minY) ? maxY - minY + 1 : 1;
-    const gridSize = Math.max(sizeX, sizeY) + 2;
+    const gridSize = Math.max(sizeX, sizeY) + 4;
     const gridDivisions = Math.max(1, Math.floor(gridSize));
-    const newGridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x888888, 0xcccccc);
     const centerX = isFinite(minX) ? minX + sizeX / 2 : 0.5;
     const centerY = isFinite(minY) ? minY + sizeY / 2 : 0.5;
-    newGridHelper.position.set(centerX, 0, centerY);
-    scene.add(newGridHelper);
-    gridHelper = newGridHelper;
+    gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x888888, 0xcccccc);
+    gridHelper.position.set(centerX, -0.01, centerY);
+    scene.add(gridHelper);
+
+    if (groundPlane) {
+        scene.remove(groundPlane);
+        groundPlane.geometry.dispose();
+        groundPlane.material.dispose();
+    }
+    const groundSize = gridSize + 2;
+    const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd, side: THREE.DoubleSide });
+    groundPlane = new THREE.Mesh(groundGeometry, groundMaterial);
+    groundPlane.rotation.x = -Math.PI / 2;
+    groundPlane.position.set(centerX, -0.02, centerY);
+    groundPlane.receiveShadow = true;
+    scene.add(groundPlane);
   }
 
   $: if (towerGroup) {
@@ -138,35 +175,59 @@
     const height = canvasContainer.clientHeight;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xeeeeee);
+    scene.background = new THREE.Color(0xddeeff);
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(5, 5, 10);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(5, 8, 12);
+    camera.lookAt(0, 1, 0);
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     canvasContainer.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    directionalLight.position.set(5, 10, 7);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 15, 10);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 50;
+    directionalLight.shadow.camera.left = -20;
+    directionalLight.shadow.camera.right = 20;
+    directionalLight.shadow.camera.top = 20;
+    directionalLight.shadow.camera.bottom = -20;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
     scene.add(directionalLight);
+
+    pointLight = new THREE.PointLight(0xffaa88, 0.5, 100);
+    pointLight.position.set(-5, 5, -5);
+    scene.add(pointLight);
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
     controls.minDistance = 2;
-    controls.maxDistance = 50;
+    controls.maxDistance = 60;
+    controls.target.set(0, 1, 0);
 
-    cubeGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
-    materialOverlap = new THREE.MeshStandardMaterial({ color: 0xffff00, metalness: 0.3, roughness: 0.6 });
-    materialDefault = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.3, roughness: 0.6 });
+    cubeGeometry = new RoundedBoxGeometry(0.9, 0.9, 0.9, 4, 0.05);
+    materialOverlap = new THREE.MeshStandardMaterial({ color: 0xffff00, metalness: 0.2, roughness: 0.7 });
+    materialDefault = new THREE.MeshStandardMaterial({
+        color: 0xcccccc,
+        metalness: 0.3,
+        roughness: 0.6
+    });
+    materialX = new THREE.MeshStandardMaterial({ color: 0xff6666, metalness: 0.3, roughness: 0.6 });
+    materialY = new THREE.MeshStandardMaterial({ color: 0x66ff66, metalness: 0.3, roughness: 0.6 });
+    materialZ = new THREE.MeshStandardMaterial({ color: 0x6666ff, metalness: 0.3, roughness: 0.6 });
 
     towerGroup = new THREE.Group();
     scene.add(towerGroup);
 
     const axesHelper = new THREE.AxesHelper(5);
     axesHelper.setColors(new THREE.Color(0xff0000), new THREE.Color(0x0000ff), new THREE.Color(0x00ff00));
+    axesHelper.position.y = 0.01;
     scene.add(axesHelper);
 
     resizeObserver = new ResizeObserver(entries => {
@@ -197,6 +258,12 @@
      if (resizeObserver && canvasContainer) resizeObserver.unobserve(canvasContainer);
      controls?.dispose();
      if (scene && gridHelper) scene.remove(gridHelper);
+     if (scene && groundPlane) {
+         scene.remove(groundPlane);
+         groundPlane.geometry.dispose();
+         groundPlane.material.dispose();
+     }
+     if (scene && pointLight) scene.remove(pointLight);
      renderer?.dispose();
      if (renderer?.domElement && canvasContainer?.contains(renderer.domElement)) {
          canvasContainer.removeChild(renderer.domElement);
@@ -205,6 +272,9 @@
      cubeGeometry?.dispose();
      materialOverlap?.dispose();
      materialDefault?.dispose();
+     materialX?.dispose();
+     materialY?.dispose();
+     materialZ?.dispose();
 
      scene?.traverse(object => {
         if (object instanceof THREE.Mesh) {

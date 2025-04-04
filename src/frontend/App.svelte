@@ -1,10 +1,10 @@
 <script>
   import TowerVisualizer from './TowerVisualizer.svelte';
 
-  function createMockLayer(width, height, fillChar = ' ') {
+  function createMockLayer(width, height, fillValue = null) {
       const grid = [];
       for (let y = 0; y < height; y++) {
-          grid.push(Array(width).fill(fillChar));
+          grid.push(Array(width).fill(fillValue));
       }
       return { width, height, grid };
   }
@@ -12,27 +12,31 @@
   let towerLayers = [];
 
   const layer0 = createMockLayer(3, 3);
-  layer0.grid[0][0] = 'К'; layer0.grid[0][1] = 'О'; layer0.grid[0][2] = 'Т';
-  layer0.grid[1][1] = 'О'; layer0.grid[2][1] = 'М';
+  layer0.grid[0][0] = { char: 'К', dir: 2 };
+  layer0.grid[0][1] = { char: 'О', dir: 2 };
+  layer0.grid[0][2] = { char: 'Т', dir: 2 };
+  layer0.grid[1][1] = { char: 'О', dir: 3 };
+  layer0.grid[2][1] = { char: 'М', dir: 3 };
   towerLayers.push(layer0);
 
   const layer1 = createMockLayer(4, 1);
-  layer1.grid[0][1] = 'О'; layer1.grid[0][2] = 'С'; layer1.grid[0][3] = 'А';
+  layer1.grid[0][1] = { char: 'О', dir: 2 };
+  layer1.grid[0][2] = { char: 'С', dir: 2 };
+  layer1.grid[0][3] = { char: 'А', dir: 2 };
   towerLayers.push(layer1);
 
   const layer2 = createMockLayer(2, 1);
-  layer2.grid[0][1] = 'А';
+  layer2.grid[0][1] = { char: 'А', dir: 1 };
   towerLayers.push(layer2);
-
-  $: currentVoxelMap = convertWordsToVoxels(currentTowerWords);
 
   function addWord() {
     if (towerLayers[0] && towerLayers[0].grid[0]) {
+        const newCell = { char: 'Л', dir: 3 };
         if (towerLayers[0].grid[0].length < 4) {
-            towerLayers[0].grid[0].push('Л');
+            towerLayers[0].grid[0].push(newCell);
             towerLayers[0].width = towerLayers[0].grid[0].length;
         } else {
-            towerLayers[0].grid[0][3] = 'Л';
+            towerLayers[0].grid[0][3] = newCell;
         }
     }
     towerLayers = [...towerLayers];
@@ -43,8 +47,8 @@
 <main>
   <div class="content">
     <div class="visualizer-section">
-        <h2>Визуализация Башни (Слоями)</h2>
-        <button on:click={addWord}>Добавить букву 'Л'</button>
+        <h2>Визуализация Башни</h2>
+        <button on:click={addWord}>Добавить букву 'Л' (Y)</button>
         <div class="visualizer-wrapper">
             <TowerVisualizer layers={towerLayers} />
         </div>
@@ -60,19 +64,6 @@
   flex-direction: column;
   align-items: center;
   padding-top: 20px;
-}
-
-.content h1 {
-  font-size: 3.6rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.content p {
-  font-size: 1.2rem;
-  font-weight: 400;
-  opacity: 0.5;
-   margin-bottom: 2rem;
 }
 
 .visualizer-section {
