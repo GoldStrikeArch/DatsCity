@@ -4,7 +4,7 @@ export const CONFIG = {
   SHOW_VISUALIZATION: true, // ?
   PLAY_SOUND: true,
   LOAD_FROM_FILE: true,
-  SEND_REQUESTS: false, // переключить для отправки запросов
+  SEND_REQUESTS: true, // переключить для отправки запросов
   DEBUG: false,
   LOGS_LIMIT: 100,
   TOKEN: process.env.AUTH_TOKEN,
