@@ -55,7 +55,7 @@ export class GameClient {
 
       // Use the SimpleTowerBuilder to create a valid tower
       const towerBuilder = new SimpleTowerBuilder(this.words);
-      const towerCommands = towerBuilder.buildSimpleTower();
+      const towerCommands = towerBuilder.buildSimpleTower(this.mapSize[0], this.mapSize[1], this.mapSize[2]);
 
       if (towerCommands.length === 0) {
         console.error("Failed to build tower");
@@ -65,7 +65,7 @@ export class GameClient {
       // Convert commands to API request format
       const buildRequest: model_PlayerBuildRequest = {
         words: towerCommands.map((cmd) => this.convertToTowerWordRequest(cmd)),
-        done: false,
+        done: true,
       };
 
       console.log(`Sending build request with ${buildRequest.words.length} words...`);

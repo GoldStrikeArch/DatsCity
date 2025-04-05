@@ -16,12 +16,12 @@ export class SimpleTowerBuilder {
    * Build a simple tower with just a few words
    * Creates a valid tower with proper intersections
    */
-  public buildSimpleTower(): WordCommand[] {
+  public buildSimpleTower(width, height, depth): WordCommand[] {
     const commands: WordCommand[] = [];
     const usedIndices = new Set<number>();
 
     // Create a new grid
-    const grid = new WorldGrid3D(30, 30, 100, this.words);
+    const grid = new WorldGrid3D(width, height, depth, this.words);
 
     console.log("Building a simple tower with proper intersections");
 
@@ -38,7 +38,7 @@ export class SimpleTowerBuilder {
     // Place base word at (5,5,0)
     const baseCommand = new WordCommand(
       baseWordIndex,
-      new Coord3D(5, 5, 0),
+      new Coord3D(15, 15, 0),
       Direction.HorizontalX, // Direction 2 (X-axis)
     );
 
@@ -92,7 +92,7 @@ export class SimpleTowerBuilder {
     // Z position: 0 - vertPos (to align the intersection letter)
     const vertCommand = new WordCommand(
       vertWordIndex,
-      new Coord3D(5 + vertCandidate.basePos, 5, 0),
+      new Coord3D(15 + vertCandidate.basePos, 15, 0),
       Direction.Vertical, // Direction 1 (Z-axis)
     );
 
@@ -149,7 +149,7 @@ export class SimpleTowerBuilder {
         // Z position: 1 (floor 1)
         const floor1Command = new WordCommand(
           floor1WordIndex,
-          new Coord3D(5 + vertCandidate.basePos - floor1Candidate.floor1Pos, 5, 1),
+          new Coord3D(15 + vertCandidate.basePos - floor1Candidate.floor1Pos, 15, 1),
           Direction.HorizontalX, // Direction 2 (X-axis)
         );
 
@@ -203,7 +203,7 @@ export class SimpleTowerBuilder {
         // Position second vertical word to intersect with base word
         const vert2Command = new WordCommand(
           vert2WordIndex,
-          new Coord3D(5 + vert2Candidate.basePos, 5, 0),
+          new Coord3D(15 + vert2Candidate.basePos, 15, 0),
           Direction.Vertical, // Direction 1 (Z-axis)
         );
 
