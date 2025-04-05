@@ -11,7 +11,6 @@ async function main() {
     }
   }
 
-  // Handle graceful shutdown
   process.on("SIGINT", () => {
     client.flushLogs();
     console.log("Завершение...");
