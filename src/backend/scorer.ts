@@ -1,34 +1,33 @@
-// src/backend/scorer.ts
-import { Direction, FloorState, Point3D, TowerState, WordPlacement } from './types';
-import { getWordPositions, pointsEqual } from './utils';
+import { Direction, type FloorState, type TowerState, type WordPlacement } from "./types";
+import { getWordPositions, pointsEqual } from "./utils";
 
 export class TowerScorer {
   /**
-   * Evaluates a tower's score based on the game rules
+   * Оценивает баллы башни по правил игры
    */
   public evaluateTower(tower: TowerState): {
     isValid: boolean;
     score: number;
-    floors: { floorZ: number, score: number, isValid: boolean }[];
+    floors: { floorZ: number; score: number; isValid: boolean }[];
     invalidReason?: string;
   } {
-    // Check if tower has at least 2 floors
+    // Хотя бы 2 этажа
     if (tower.floors.size < 2) {
       return {
         isValid: false,
         score: 0,
         floors: [],
-        invalidReason: "Tower must have at least 2 floors"
+        invalidReason: "Tower must have at least 2 floors",
       };
     }
 
     let isValid = true;
     let totalScore = 0;
-    let floorsData: { floorZ: number, score: number, isValid: boolean }[] = [];
+    const floorsData: { floorZ: number; score: number; isValid: boolean }[] = [];
     let invalidReason: string | undefined;
 
-    // Validate vertical words
-    const verticalWords = tower.words.filter(w => w.direction === Direction.Z);
+    // Валидация вертикальных слов
+    const verticalWords = tower.words.filter((w) => w.direction === Direction.Z);
     for (const word of verticalWords) {
       const isWordValid = this.validateVerticalWord(word, tower);
       if (!isWordValid.valid) {
@@ -38,10 +37,9 @@ export class TowerScorer {
       }
     }
 
-    // Validate horizontal words (except on Z=0)
+    // Валидация горизонтальных слов (кроме 0 этажа)
     if (isValid) {
-      const horizontalWords = tower.words.filter(w =>
-        w.direction !== Direction.Z && w.position.z !== 0);
+      const horizontalWords = tower.words.filter((w) => w.direction !== Direction.Z && w.position.z !== 0);
 
       for (const word of horizontalWords) {
         const isWordValid = this.validateHorizontalWord(word, tower);
@@ -53,9 +51,8 @@ export class TowerScorer {
       }
     }
 
-    // If tower is valid, calculate score
     if (isValid) {
-      // Calculate score for each floor
+      // Посчитать баллы
       const floorZs = Array.from(tower.floors.keys()).sort((a, b) => b - a);
 
       for (const z of floorZs) {
@@ -64,7 +61,7 @@ export class TowerScorer {
         floorsData.push({
           floorZ: z,
           score: floorScore,
-          isValid: true
+          isValid: true,
         });
         totalScore += floorScore;
       }
@@ -74,30 +71,31 @@ export class TowerScorer {
       isValid,
       score: isValid ? totalScore : 0,
       floors: floorsData,
-      invalidReason
+      invalidReason,
     };
   }
 
   /**
-   * Validates a vertical word according to game rules
+   * Валидация вертикальных слов
    */
   private validateVerticalWord(word: WordPlacement, tower: TowerState): { valid: boolean; reason?: string } {
     let validIntersections = 0;
     const wordPositions = getWordPositions(word.word, word.position, Direction.Z);
 
-    // Must intersect with at least 2 horizontal words not in the first letter
-    const horizontalWords = tower.words.filter(w => w.direction !== Direction.Z);
+    // Должно пересекаться как минимум с 2 горизонтальными словами не в первой букве
+    const horizontalWords = tower.words.filter((w) => w.direction !== Direction.Z);
 
     for (const hWord of horizontalWords) {
       const hWordPositions = getWordPositions(hWord.word, hWord.position, hWord.direction);
 
-      for (let i = 1; i < wordPositions.length; i++) {  // Skip first letter
+      for (let i = 1; i < wordPositions.length; i++) {
+        // Skip first letter
         const pos = wordPositions[i];
-        const intersects = hWordPositions.some(p => pointsEqual(p, pos));
+        const intersects = hWordPositions.some((p) => pointsEqual(p, pos));
 
         if (intersects) {
           validIntersections++;
-          break;  // One intersection per horizontal word
+          break;
         }
       }
     }
@@ -105,7 +103,7 @@ export class TowerScorer {
     if (validIntersections < 2) {
       return {
         valid: false,
-        reason: `Vertical word "${word.word}" has only ${validIntersections} valid intersections, needs at least 2`
+        reason: `Vertical word "${word.word}" has only ${validIntersections} valid intersections, needs at least 2`,
       };
     }
 
@@ -113,10 +111,10 @@ export class TowerScorer {
   }
 
   /**
-   * Validates a horizontal word according to game rules
+   * Валидация горизонтального слова по правилам игры
    */
   private validateHorizontalWord(word: WordPlacement, tower: TowerState): { valid: boolean; reason?: string } {
-    // If word is on Z=0 floor, no validation needed
+    // Если 0 этаж, то пропускаем
     if (word.position.z === 0) {
       return { valid: true };
     }
@@ -124,19 +122,19 @@ export class TowerScorer {
     let validIntersections = 0;
     const wordPositions = getWordPositions(word.word, word.position, word.direction);
 
-    // Must intersect with at least 2 vertical words not in the first letter
-    const verticalWords = tower.words.filter(w => w.direction === Direction.Z);
+    // Должно пересекаться как минимум с 2 вертикальными словами не в первой букве
+    const verticalWords = tower.words.filter((w) => w.direction === Direction.Z);
 
     for (const vWord of verticalWords) {
       const vWordPositions = getWordPositions(vWord.word, vWord.position, Direction.Z);
 
-      for (let i = 1; i < wordPositions.length; i++) {  // Skip first letter
+      for (let i = 1; i < wordPositions.length; i++) {
         const pos = wordPositions[i];
-        const intersects = vWordPositions.some(p => pointsEqual(p, pos));
+        const intersects = vWordPositions.some((p) => pointsEqual(p, pos));
 
         if (intersects) {
           validIntersections++;
-          break;  // One intersection per vertical word
+          break;
         }
       }
     }
@@ -144,7 +142,7 @@ export class TowerScorer {
     if (validIntersections < 2) {
       return {
         valid: false,
-        reason: `Horizontal word "${word.word}" at Z=${word.position.z} has only ${validIntersections} valid intersections, needs at least 2`
+        reason: `Horizontal word "${word.word}" at Z=${word.position.z} has only ${validIntersections} valid intersections, needs at least 2`,
       };
     }
 
@@ -152,40 +150,40 @@ export class TowerScorer {
   }
 
   /**
-   * Calculates score for a floor
+   * Расчет баллов для этажа
    */
   private calculateFloorScore(floor: FloorState): number {
-    // Total letters count on the floor
+    // Подсчет букв
     const letterCount = floor.words.reduce((sum, word) => sum + word.word.length, 0);
 
-    // Calculate proportion coefficient
+    // Подсчет коэффициента пропорции
     const proportionCoefficient = Math.min(floor.width, floor.depth) / Math.max(floor.width, floor.depth);
 
-    // Calculate density coefficient
-    const xWordsCount = floor.horizontalWords.filter(w => w.direction === Direction.X).length;
-    const yWordsCount = floor.horizontalWords.filter(w => w.direction === Direction.Y).length;
+    // Подсчет коэффициента плотности
+    const xWordsCount = floor.horizontalWords.filter((w) => w.direction === Direction.X).length;
+    const yWordsCount = floor.horizontalWords.filter((w) => w.direction === Direction.Y).length;
     const densityCoefficient = 1 + (xWordsCount + yWordsCount) / 4;
 
-    // Calculate floor multiplier (height bonus)
+    // Множитель этажа
     const floorMultiplier = Math.abs(floor.z) + 1;
 
-    // Final score for the floor
+    // Итоговый результат
     const floorScore = letterCount * proportionCoefficient * densityCoefficient * floorMultiplier;
 
     return floorScore;
   }
 
   /**
-   * Creates a TowerState from a list of words and coordinates
+   * Создает структуру башни (этажи, слова)
    */
   public createTowerState(wordPlacements: WordPlacement[]): TowerState {
     const tower: TowerState = {
       words: wordPlacements,
       floors: new Map<number, FloorState>(),
-      score: 0
+      score: 0,
     };
 
-    // Group words by z-coordinate
+    // Группировка по Z
     const wordsByZ = new Map<number, WordPlacement[]>();
     for (const word of wordPlacements) {
       const z = word.position.z;
@@ -195,14 +193,14 @@ export class TowerScorer {
       wordsByZ.get(z)!.push(word);
     }
 
-    // Create floor states
     for (const [z, floorWords] of wordsByZ) {
-      const horizontalWords = floorWords.filter(w => w.direction !== Direction.Z);
-      const verticalWords = floorWords.filter(w => w.direction === Direction.Z);
+      const horizontalWords = floorWords.filter((w) => w.direction !== Direction.Z);
+      const verticalWords = floorWords.filter((w) => w.direction === Direction.Z);
 
-      // Determine floor dimensions
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
+      let minX = Number.POSITIVE_INFINITY,
+        maxX = Number.NEGATIVE_INFINITY;
+      let minY = Number.POSITIVE_INFINITY,
+        maxY = Number.NEGATIVE_INFINITY;
 
       for (const word of floorWords) {
         const positions = getWordPositions(word.word, word.position, word.direction);
@@ -218,7 +216,6 @@ export class TowerScorer {
       const width = maxX - minX + 1;
       const depth = maxY - minY + 1;
 
-      // Create floor state
       const floor: FloorState = {
         z,
         words: floorWords,
@@ -226,7 +223,7 @@ export class TowerScorer {
         verticalWords: verticalWords,
         width,
         depth,
-        score: 0 // Will be calculated later
+        score: 0,
       };
 
       tower.floors.set(z, floor);
