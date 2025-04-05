@@ -3,7 +3,7 @@ import { getWordPositions, pointsEqual } from "./utils";
 
 export class TowerScorer {
   /**
-   * Оценивает баллы башни по правил игры
+   * Оценивает баллы башни по правилам игры
    */
   public evaluateTower(tower: TowerState): {
     isValid: boolean;
@@ -78,7 +78,7 @@ export class TowerScorer {
   /**
    * Валидация вертикальных слов
    */
-  private validateVerticalWord(word: WordPlacement, tower: TowerState): { valid: boolean; reason?: string } {
+  private validateVerticalWord(word: WordPlacement, tower: TowerState) {
     let validIntersections = 0;
     const wordPositions = getWordPositions(word.word, word.position, Direction.Z);
 
@@ -113,7 +113,7 @@ export class TowerScorer {
   /**
    * Валидация горизонтального слова по правилам игры
    */
-  private validateHorizontalWord(word: WordPlacement, tower: TowerState): { valid: boolean; reason?: string } {
+  private validateHorizontalWord(word: WordPlacement, tower: TowerState) {
     // Если 0 этаж, то пропускаем
     if (word.position.z === 0) {
       return { valid: true };
@@ -152,7 +152,7 @@ export class TowerScorer {
   /**
    * Расчет баллов для этажа
    */
-  private calculateFloorScore(floor: FloorState): number {
+  private calculateFloorScore(floor: FloorState) {
     // Подсчет букв
     const letterCount = floor.words.reduce((sum, word) => sum + word.word.length, 0);
 
@@ -176,7 +176,7 @@ export class TowerScorer {
   /**
    * Создает структуру башни (этажи, слова)
    */
-  public createTowerState(wordPlacements: WordPlacement[]): TowerState {
+  public createTowerState(wordPlacements: WordPlacement[]) {
     const tower: TowerState = {
       words: wordPlacements,
       floors: new Map<number, FloorState>(),
