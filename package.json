@@ -10,7 +10,7 @@
     "check": "biome check --write",
     "format": "biome format --write",
     "svelte-check": "svelte-check --tsconfig ./tsconfig.json",
-    "test": "uvu -r tsm ./src/backend/tests"
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -21,9 +21,7 @@
     "three": "^0.175.0"
   },
   "lint-staged": {
-    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome check --write"
-    ]
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": ["biome check --write"]
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -36,10 +34,12 @@
     "form-data": "^4.0.2",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
+    "loadr": "^0.1.1",
     "svelte-check": "^4.1.5",
     "tsm": "^2.3.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
-    "uvu": "^0.5.6"
+    "uvu": "^0.5.6",
+    "vitest": "^3.1.1"
   }
 }
